@@ -296,4 +296,3 @@ dependencies:
       - pyinform==0.2.0
       - scikit-learn==1.5.2
       - threadpoolctl==3.5.0
-prefix: /home/wz1411/miniconda3/envs/func2graph
