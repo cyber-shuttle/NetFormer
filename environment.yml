@@ -1,4 +1,4 @@
-name: func2graph
+name: NetFormer
 channels:
   - pytorch
   - nvidia
