@@ -156,7 +156,6 @@ if __name__ == "__main__":
     single_model = models.NetFormer_sim(
         model_random_seed=model_random_seed,
         neuron_num=neuron_num,
-        num_cell_types=4,
         window_size=window_size,
         learning_rate=learning_rate,
         scheduler=scheduler,
