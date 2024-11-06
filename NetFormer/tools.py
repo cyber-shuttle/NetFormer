@@ -303,20 +303,20 @@ def sliding_windows(
 def NN2KK_remove_no_connection_sim(
     connectivity_matrix_new, 
     connectivity_matrix_GT, 
-    cell_type_id2cell_type, 
+    cell_type_order, 
     cell_type_count
 ):
-    connectivity_matrix_KK = np.zeros((len(cell_type_id2cell_type), len(cell_type_id2cell_type)))
+    connectivity_matrix_KK = np.zeros((len(cell_type_order), len(cell_type_order)))
 
     accumulated_num_cells_i = 0
-    for i in range(len(cell_type_id2cell_type)):
+    for i in range(len(cell_type_order)):
         old_i_start = accumulated_num_cells_i
-        accumulated_num_cells_i += cell_type_count[cell_type_id2cell_type[i]]
+        accumulated_num_cells_i += cell_type_count[cell_type_order[i]]
 
         accumulated_num_cells_j = 0
-        for j in range(len(cell_type_id2cell_type)):
+        for j in range(len(cell_type_order)):
             old_j_start = accumulated_num_cells_j
-            accumulated_num_cells_j += cell_type_count[cell_type_id2cell_type[j]]
+            accumulated_num_cells_j += cell_type_count[cell_type_order[j]]
 
             # count the number of non-zeros in the ground truth matrix
             mask_non_zeros = connectivity_matrix_GT[old_i_start : accumulated_num_cells_i, old_j_start : accumulated_num_cells_j] != 0
@@ -328,3 +328,88 @@ def NN2KK_remove_no_connection_sim(
                 connectivity_matrix_KK[i, j] = np.sum(connectivity_matrix_new[old_i_start : accumulated_num_cells_i, old_j_start : accumulated_num_cells_j][mask_non_zeros]) / total_num_non_zeros_elements
 
     return connectivity_matrix_KK
+
+
+
+def multisession_NN_to_KK(
+    multisession_NN_list: list,
+    cell_type_order: list,
+    multisession_cell_type_id_list: list,
+):
+    """
+    This function is used for mouse data to compute K*K connectivity strength matrix from multiple sessions N*N results.
+    It computes one K*K matrix directly from N*N matrices from multiple sessions.
+
+
+    Parameters
+    ----------
+    multisession_NN_list: list
+        a list of N*N connectivity matrices from multiple sessions (N can be different in different sessions)
+    
+    cell_type_order: list
+        This should contain all cell types that are in the data. (a union of all cell types from all sessions). 
+        The order should be decided when processing the data. E.g. ['EC', 'Pvalb', 'Sst', 'Vip']
+
+    multisession_cell_type_id_list: list
+        a list of cell type ids from multiple sessions, each session is a 1D array of shape num_neurons
+
+    
+    Returns
+    -------
+    result: np.array
+        K*K connectivity strength, with cell_type_order as the order of cell types
+    """
+
+    KK_result = np.zeros((len(cell_type_order), len(cell_type_order)))
+    # count the number of sessions that have connection between cell type i and cell type j
+    KK_count = np.zeros((len(cell_type_order), len(cell_type_order)))
+
+    for i in range(len(multisession_NN_list)):
+        current_session_NN = multisession_NN_list[i]
+        current_session_cell_type_id = multisession_cell_type_id_list[i]
+
+        for j in range(len(current_session_cell_type_id)):
+            for k in range(len(current_session_cell_type_id)):
+
+                # Ignore the diagonal elements
+                if j == k:
+                    continue
+
+                cell_type_j = current_session_cell_type_id[j]
+                cell_type_k = current_session_cell_type_id[k]
+
+                KK_result[cell_type_j, cell_type_k] += current_session_NN[j, k]
+                KK_count[cell_type_j, cell_type_k] += 1
+
+    # make all 0 entries in KK_count to be 1, so that we don't divide by 0
+    KK_count[KK_count == 0] = 1
+    return KK_result / KK_count
+
+
+
+def experiment_KK_to_eval_KK(
+    experiment_KK: np.ndarray,
+    experiment_cell_type_order: list,
+    eval_cell_type_order: list,
+):
+    """
+    This function is used to convert experiment_KK to eval_KK, since eval cell types are a subset of experiment cell types.
+    The output KK will be a matrix with eval cell-type order.
+    """
+
+    eval_KK = np.zeros((len(eval_cell_type_order), len(eval_cell_type_order)))
+    for eval_cell_type_i in eval_cell_type_order:
+
+        if eval_cell_type_i in experiment_cell_type_order:
+            experiment_index_i = experiment_cell_type_order.index(eval_cell_type_i)
+            eval_index_i = eval_cell_type_order.index(eval_cell_type_i)
+
+            for eval_cell_type_j in eval_cell_type_order:
+
+                if eval_cell_type_j in experiment_cell_type_order:
+                    experiment_index_j = experiment_cell_type_order.index(eval_cell_type_j)
+                    eval_index_j = eval_cell_type_order.index(eval_cell_type_j)
+
+                    eval_KK[eval_index_i, eval_index_j] = experiment_KK[experiment_index_i, experiment_index_j]
+
+    return eval_KK

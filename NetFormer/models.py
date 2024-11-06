@@ -29,7 +29,7 @@ class Base_sim(pl.LightningModule):
                     optimizer,
                     patience=6,
                 ),
-                "monitor": "VAL_sum_loss",
+                "monitor": "VAL_loss",
             }
         elif self.hparams.scheduler == "cycle":
             lr_scheduler = {
@@ -163,7 +163,7 @@ class Base_mouse(pl.LightningModule):
                     optimizer,
                     patience=3,
                 ),
-                "monitor": "VAL_sum_loss",
+                "monitor": "VAL_loss",
             }
         elif self.hparams.scheduler == "cycle":
             lr_scheduler = {
@@ -193,7 +193,36 @@ class Base_mouse(pl.LightningModule):
         # make pred and target have the same shape
         target = target.reshape(pred.shape)
 
-        loss = F.mse_loss(pred, target, reduction="mean")
+        if self.hparams.constraint_loss_weight != 0:
+            # cell type level constraint
+            cell_type_ids_np = cell_type_ids[0].clone().detach().cpu().numpy()
+            expanded_cell_type_level_constraint = torch.zeros((neuron_level_attention.shape[1],neuron_level_attention.shape[2]), requires_grad=True).to(pred.device)
+            expanded_cell_type_level_var = torch.zeros((neuron_level_attention.shape[1],neuron_level_attention.shape[2]), requires_grad=True).to(pred.device)
+
+            # loop over unique cell types
+            for i in list(np.unique(cell_type_ids_np)):
+                # find the neurons with the same cell type
+                neuron_ids_with_same_cell_type_i = np.where(cell_type_ids_np == i)[0]
+                for j in list(np.unique(cell_type_ids_np)):
+                    # find the neurons with the same cell type
+                    neuron_ids_with_same_cell_type_j = np.where(cell_type_ids_np == j)[0]
+                    # Assign the same constraint to the neurons with the same cell type
+                    expanded_cell_type_level_constraint[neuron_ids_with_same_cell_type_i, neuron_ids_with_same_cell_type_j.reshape(-1,1)] = self.cell_type_level_constraint[i, j] * 1   # to create computational graph
+                    expanded_cell_type_level_constraint[neuron_ids_with_same_cell_type_j, neuron_ids_with_same_cell_type_i.reshape(-1,1)] = self.cell_type_level_constraint[j, i] * 1
+
+                    expanded_cell_type_level_var[neuron_ids_with_same_cell_type_i, neuron_ids_with_same_cell_type_j.reshape(-1,1)] = self.cell_type_level_var[i, j] ** 2   # to create computational graph
+                    expanded_cell_type_level_var[neuron_ids_with_same_cell_type_j, neuron_ids_with_same_cell_type_i.reshape(-1,1)] = self.cell_type_level_var[j, i] ** 2
+
+            # expand the first dimension of expanded_cell_type_level_constraint to batch_size
+            expanded_cell_type_level_constraint = einops.repeat(expanded_cell_type_level_constraint, 'n d -> b n d', b=neuron_level_attention.shape[0])
+            expanded_cell_type_level_var = einops.repeat(expanded_cell_type_level_var, 'n d -> b n d', b=neuron_level_attention.shape[0])
+
+            # loss
+            constraint_loss = F.gaussian_nll_loss(neuron_level_attention, expanded_cell_type_level_constraint, reduction="mean", var=expanded_cell_type_level_var)
+            loss = F.mse_loss(pred, target, reduction="mean") + constraint_loss * self.hparams.constraint_loss_weight
+        else:
+            loss = F.mse_loss(pred, target, reduction="mean")
+
         self.log("TRAIN_loss", loss)
         return loss
     
@@ -210,7 +239,36 @@ class Base_mouse(pl.LightningModule):
         # Make pred and target have the same shape
         target = target.reshape(pred.shape)
 
-        loss = F.mse_loss(pred, target, reduction="mean")
+        if self.hparams.constraint_loss_weight != 0:
+            # cell type level constraint
+            cell_type_ids_np = cell_type_ids[0].clone().detach().cpu().numpy()
+            expanded_cell_type_level_constraint = torch.zeros((neuron_level_attention.shape[1],neuron_level_attention.shape[2]), requires_grad=True).to(pred.device)
+            expanded_cell_type_level_var = torch.zeros((neuron_level_attention.shape[1],neuron_level_attention.shape[2]), requires_grad=True).to(pred.device)
+
+            # loop over unique cell types
+            for i in list(np.unique(cell_type_ids_np)):
+                # find the neurons with the same cell type
+                neuron_ids_with_same_cell_type_i = np.where(cell_type_ids_np == i)[0]
+                for j in list(np.unique(cell_type_ids_np)):
+                    # find the neurons with the same cell type
+                    neuron_ids_with_same_cell_type_j = np.where(cell_type_ids_np == j)[0]
+                    # Assign the same constraint to the neurons with the same cell type
+                    expanded_cell_type_level_constraint[neuron_ids_with_same_cell_type_i, neuron_ids_with_same_cell_type_j.reshape(-1,1)] = self.cell_type_level_constraint[i, j] * 1
+                    expanded_cell_type_level_constraint[neuron_ids_with_same_cell_type_j, neuron_ids_with_same_cell_type_i.reshape(-1,1)] = self.cell_type_level_constraint[j, i] * 1
+
+                    expanded_cell_type_level_var[neuron_ids_with_same_cell_type_i, neuron_ids_with_same_cell_type_j.reshape(-1,1)] = self.cell_type_level_var[i, j] ** 2
+                    expanded_cell_type_level_var[neuron_ids_with_same_cell_type_j, neuron_ids_with_same_cell_type_i.reshape(-1,1)] = self.cell_type_level_var[j, i] ** 2
+
+            # expand the first dimension of expanded_cell_type_level_constraint to batch_size
+            expanded_cell_type_level_constraint = einops.repeat(expanded_cell_type_level_constraint, 'n d -> b n d', b=neuron_level_attention.shape[0])
+            expanded_cell_type_level_var = einops.repeat(expanded_cell_type_level_var, 'n d -> b n d', b=neuron_level_attention.shape[0])
+
+            # loss
+            constraint_loss = F.gaussian_nll_loss(neuron_level_attention, expanded_cell_type_level_constraint, reduction="mean", var=expanded_cell_type_level_var)
+            loss = F.mse_loss(pred, target, reduction="mean") + constraint_loss * self.hparams.constraint_loss_weight
+        else:
+            loss = F.mse_loss(pred, target, reduction="mean")
+
         self.log("VAL_loss", loss)
     
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
@@ -238,12 +296,15 @@ class NetFormer_mouse(Base_mouse):
         scheduler="cycle",
         attention_activation="none", # "softmax" or "sigmoid" or "tanh", "none"
         weight_decay=0,
-        out_layer=False,
         dim_E=30,
+        constraint_loss_weight=0,
     ):
         super().__init__()
         self.save_hyperparameters()
         torch.manual_seed(model_random_seed)
+
+        self.cell_type_level_constraint = nn.Parameter(torch.FloatTensor(num_cell_types, num_cell_types).uniform_(-1, 1))
+        self.cell_type_level_var = nn.Parameter(torch.ones(num_cell_types, num_cell_types), requires_grad=True)
 
         self.predict_window_size = predict_window_size
         dim_X = window_size - predict_window_size
@@ -266,10 +327,6 @@ class NetFormer_mouse(Base_mouse):
 
         self.layer_norm2 = nn.LayerNorm(dim_X)
 
-        self.out_layer = out_layer
-        if out_layer == True:
-            self.out = nn.Linear(dim_X, predict_window_size, bias=False)
-
     def forward(self, x, neuron_ids): # x: (batch_size, neuron_num, time), neuron_ids: (batch_size, neuron_num)
 
         e = self.embedding_table(neuron_ids[0])
@@ -283,7 +340,4 @@ class NetFormer_mouse(Base_mouse):
         x, attn = self.attentionlayer(x, e)
         x = self.layer_norm2(x)
 
-        if self.out_layer:
-            return self.out(x), attn
-        else:
-            return x[:, :, -1*self.predict_window_size:], attn
+        return x[:, :, -1*self.predict_window_size:], attn

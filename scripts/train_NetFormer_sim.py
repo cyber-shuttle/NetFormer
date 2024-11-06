@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 from scipy import stats
 import argparse
 import torch
-import torch.nn.functional as F
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
@@ -205,41 +204,6 @@ if __name__ == "__main__":
     avg_attention = np.mean(attentions, axis=0)   # neuron_num * neuron_num
     W = avg_attention
 
-    # Activity prediction on validation set ###################################################################
-
-    val_results = trainer.predict(single_model, dataloaders=[validloader], ckpt_path=model_checkpoint_path)
-
-    predictions = []
-    ground_truths = []
-
-    for i in range(len(val_results)):
-        x_hat = val_results[i][0]    # batch_size * (neuron_num*time)
-        x = val_results[i][1]
-
-        predictions.append(x_hat)
-        ground_truths.append(x)
-
-    predictions = torch.cat(predictions, dim=0).cpu().numpy()  # N * neuron_num * window_size
-    ground_truths = torch.cat(ground_truths, dim=0).cpu().numpy()  # N * neuron_num * window_size
-    pred_corr = stats.pearsonr(predictions.flatten(), ground_truths.flatten())[0]
-    R_squared = r2_score(ground_truths.flatten(), predictions.flatten())
-    MSE = np.mean((predictions.flatten() - ground_truths.flatten())**2)
-
-    plt.scatter(predictions.flatten(), ground_truths.flatten(), s=1)
-    plt.title("val_corr = " + str(pred_corr)[:7] + ", R^2 = " + str(R_squared)[:7] + ", MSE = " + str(MSE)[:7])
-    plt.xlabel("Predictions")
-    plt.ylabel("Ground Truths")
-    plt.savefig(output_path + "/scatter_VAL.png")
-    plt.close()
-
-    for i in range(5):
-        plt.subplot(5, 1, i+1)
-        plt.plot(predictions[:100, i, 0], label="Prediction")
-        plt.plot(ground_truths[:100, i, 0], label="Ground Truth")
-    plt.legend()
-    plt.savefig(output_path + "/curve.png")
-    plt.close()
-
     # Connectivity inference evaluation ########################################################################
 
     corr_strength_NN = np.corrcoef(W.flatten(), weight_matrix.flatten())[0, 1]
@@ -266,12 +230,10 @@ if __name__ == "__main__":
     strength_matrix[2, 3] = -0.17
     strength_matrix[3, 3] = -0.10
 
-    cell_type_id2cell_type = {0:'EC', 1:'Pvalb', 2:'Sst', 3:'Vip'}
-
     KK_strength = tools.NN2KK_remove_no_connection_sim(
         connectivity_matrix_new=W,
         connectivity_matrix_GT=weight_matrix, 
-        cell_type_id2cell_type=cell_type_id2cell_type,
+        cell_type_order=cell_type_order,
         cell_type_count=cell_type_count
     )
     corr_strength_KK = np.corrcoef(KK_strength.flatten(), strength_matrix.flatten())[0, 1]
@@ -279,10 +241,23 @@ if __name__ == "__main__":
 
     # Plot
 
+    max_abs = np.max(np.abs(strength_matrix))
+    vmin_KK = -max_abs
+    vmax_KK = max_abs
+
+    max_abs = np.max(np.abs(weight_matrix))
+    vmin_NN = -max_abs
+    vmax_NN = max_abs
+
+    # linear transformation
+    KK_strength = tools.linear_transform(KK_strength, strength_matrix)
+    W = tools.linear_transform(W, weight_matrix)
+
     # KK
-    max_abs = np.max(np.abs(KK_strength))
-    plt.imshow(KK_strength, interpolation="nearest", cmap='RdBu_r', vmin=-max_abs, vmax=max_abs)
+    plt.imshow(KK_strength, interpolation="nearest", cmap='RdBu_r', vmin=vmin_KK, vmax=vmax_KK)
     plt.colorbar()
+    plt.xticks(np.arange(4), cell_type_order)
+    plt.yticks(np.arange(4), cell_type_order)
     plt.xlabel("Pre")
     plt.ylabel("Post")
     plt.title("KK_strength, corr = " + str(corr_strength_KK)[:7] + ", spearman = " + str(spearman_corr_strength_KK)[:7])
@@ -292,9 +267,10 @@ if __name__ == "__main__":
     np.save(output_path + "/Estimated_KK_strength.npy", KK_strength)
 
     # NN
-    max_abs = np.max(np.abs(W))
-    plt.imshow(W, cmap='RdBu_r', vmin=-max_abs, vmax=max_abs)
+    plt.imshow(W, interpolation="nearest", cmap='RdBu_r', vmin=vmin_NN, vmax=vmax_NN)
     plt.colorbar()
+    plt.xlabel("Pre")
+    plt.ylabel("Post")
     plt.title("W" + " (corr: " + str(corr_strength_NN)[:6] + ") " + " (spearman: " + str(spearman_corr_strength_NN)[:6] + ")")
     plt.savefig(output_path + "/NN_strength.png")
     plt.close()
@@ -302,17 +278,21 @@ if __name__ == "__main__":
     np.save(output_path + "/Estimated_NN_strength.npy", W)
 
     # GT_KK
-    max_abs = np.max(np.abs(strength_matrix))
-    plt.imshow(strength_matrix, cmap='RdBu_r', vmin=-max_abs, vmax=max_abs)
+    plt.imshow(strength_matrix, interpolation="nearest", cmap='RdBu_r', vmin=vmin_KK, vmax=vmax_KK)
     plt.colorbar()
+    plt.xticks(np.arange(4), cell_type_order)
+    plt.yticks(np.arange(4), cell_type_order)
+    plt.xlabel("Pre")
+    plt.ylabel("Post")
     plt.title("GT_(cell_type_level)")
     plt.savefig(output_path + "/GT_KK_strength.png")
     plt.close()
 
     # GT_NN
-    max_abs = np.max(np.abs(weight_matrix))
-    plt.imshow(weight_matrix, cmap='RdBu_r', vmin=-max_abs, vmax=max_abs)
+    plt.imshow(weight_matrix, interpolation="nearest", cmap='RdBu_r', vmin=vmin_NN, vmax=vmax_NN)
     plt.colorbar()
+    plt.xlabel("Pre")
+    plt.ylabel("Post")
     plt.title("GT")
     plt.savefig(output_path + "/GT_NN_strength.png")
     plt.close()
