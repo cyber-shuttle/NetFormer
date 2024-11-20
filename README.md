@@ -25,10 +25,10 @@ pip install -e .
 ## Fit NetFormer to Data
 
 ### Nonlinear and Nonstationary System Simulation
-Data generation, model fitting, and results visualization are all in toy_systems/toy_systems.ipynb. 
+Data generation, model fitting, and results visualization are all in `toy_systems/toy_systems.ipynb`. 
 
 ### Spike-Timing-Dependent Plasticity (STDP) Simulation
-Run STDP/run_netformer_STDP.py for data generation and model fitting. Trained NetFormer models and predictions are in STDP/results/. Results visualization is in STDP/STDP_plots.ipynb. 
+Run `STDP/run_netformer_STDP.py` for data generation and model fitting. Trained NetFormer models and predictions are in `STDP/results/`. Results visualization is in `STDP/STDP_plots.ipynb`. 
 
 ### Connectivity-Constrained Simulation
 
@@ -38,8 +38,8 @@ bash train_NetFormer_sim.sh
 ```
 ### Neural Data
 
-* Create a data folder `/data` under home directory.
-* Download the dataset (Bugeon et al. 2022, Nature) to `/data/Mouse/`
+* Create a data folder `data` under home directory.
+* Download the dataset (Bugeon et al. 2022, Nature) to `data/Mouse/`
 
 ```bash
 cd scripts
