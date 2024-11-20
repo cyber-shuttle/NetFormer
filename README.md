@@ -28,7 +28,7 @@ pip install -e .
 Data generation, model fitting, and results visualization are all in `toy_systems/toy_systems.ipynb`. 
 
 ### Spike-Timing-Dependent Plasticity (STDP) Simulation
-Run `STDP/run_netformer_STDP.py` for data generation and model fitting. Trained NetFormer models and predictions are in `STDP/results/`. Results visualization is in `STDP/STDP_plots.ipynb`. 
+Run `STDP/run_netformer_STDP.py` for data generation and model fitting. Results visualization is in `STDP/STDP_plots.ipynb`. 
 
 ### Connectivity-Constrained Simulation
 
