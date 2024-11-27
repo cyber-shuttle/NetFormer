@@ -70,8 +70,8 @@ bash train_NetFormer_mouse.sh
 
 ### Nonstationary Baselines
 
- * LtrRNN: Clone and install [LtrRNN package](https://github.com/arthur-pe/LtrRNN). Run `notebook/LtrRNN.ipynb` for model fitting and evaluation on neural data.
- * AR-HMM: Clone and install [ssm package](https://github.com/lindermanlab/ssm). Run `notebook/arHMM.ipynb` for model fitting and evaluation on neural data.
+ * LtrRNN: Clone and install [LtrRNN package](https://github.com/arthur-pe/LtrRNN). Run `notebook/nonstationary_baselines/LtrRNN.ipynb` for model fitting and evaluation on neural data.
+ * AR-HMM: Clone and install [ssm package](https://github.com/lindermanlab/ssm). Run `notebook/nonstationary_baselines/arHMM.ipynb` for model fitting and evaluation on neural data.
    
 
 ## Citations
