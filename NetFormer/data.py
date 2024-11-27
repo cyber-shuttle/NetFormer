@@ -70,7 +70,8 @@ def generate_simulation_data(
     batch_size=32,
     num_workers: int=6, 
     split_ratio=0.8,
-    model_type="NetFormer",    # "NetFormer" or "GLM"
+    model_type="NetFormer",    # "NetFormer" or "RNN"
+    data_type="connectivity_constrained",    # "connectivity_constrained" or "ring_circuit"
     spatial_partial_measurement=200,  # the number of neurons that is measured, between 0 and neuron_num
 ) -> DataLoader:
     """
@@ -81,22 +82,56 @@ def generate_simulation_data(
     dataloaders and ground truth weight matrix.
     """
 
-    simulator = data_simulator(
-        neuron_num=neuron_num, 
-        tau=tau,  
-        weight_scale=weight_scale,
-        init_scale=init_scale,
-        error_scale=error_scale,
-        total_time=total_time,
-        data_random_seed=data_random_seed,
-    )
+    if data_type == "connectivity_constrained":
 
-    data = []
-    for t in range(total_time):
-        x_t = simulator.forward(t)
-        x_t = x_t.view(-1, 1)
-        data.append(x_t)
-    data = torch.cat(data, dim=1).float()
+        simulator = data_simulator(
+            neuron_num=neuron_num, 
+            tau=tau,  
+            weight_scale=weight_scale,
+            init_scale=init_scale,
+            error_scale=error_scale,
+            total_time=total_time,
+            data_random_seed=data_random_seed,
+        )
+
+        data = []
+        for t in range(total_time):
+            x_t = simulator.forward(t)
+            x_t = x_t.view(-1, 1)
+            data.append(x_t)
+        data = torch.cat(data, dim=1).float()
+
+    elif data_type == "ring_circuit":
+
+        np.random.seed(data_random_seed)
+        W = tools.construct_weight_matrix_ring_circuit(neuron_num)
+
+        activity = []     # store the activity of each neuron at each time step so far（total_time x neuron_num)
+        for i in range(1):
+            activity.append(np.zeros(neuron_num))
+
+        for t in range(total_time):
+            noise_sd = 1
+            noise_sparsity = 1
+            b = 1
+            r = weight_scale
+
+            noise = noise_sd * np.random.randn(neuron_num) * (np.random.randn(neuron_num) > noise_sparsity)
+            signal = np.tanh(r * (W @ activity[-1]) + b * (1+noise))
+            x_t_1 = signal
+            activity.append(x_t_1)
+
+        activity = np.array(activity)
+        # remove the first row
+        activity = activity[1:]
+        activity = activity.T
+        data = torch.from_numpy(activity).float()
+
+        total_time = data.shape[1]
+        neuron_num = data.shape[0]
+
+    else:
+        raise ValueError("data_type should be either 'connectivity_constrained' or 'ring_circuit'.")
 
     # Partial Observation
 
@@ -144,7 +179,7 @@ def generate_simulation_data(
         train_dataset = TensorDataset(train_data[:, :, :-predict_window_size], train_data[:, :, -predict_window_size:])
         val_dataset = TensorDataset(val_data[:, :, :-predict_window_size], val_data[:, :, -predict_window_size:])
 
-    elif (model_type == "GLM"):
+    elif (model_type == "RNN"):
 
         # input takes in activity from one previous time step to predict for the next time step
         train_x = train_data[:, :-1].transpose(0, 1)
@@ -155,28 +190,40 @@ def generate_simulation_data(
         train_dataset = TensorDataset(train_x, train_y)
         val_dataset = TensorDataset(val_x, val_y)
 
+    else:
+        raise ValueError("model_type should be either 'NetFormer' or 'RNN'.")
+
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
-    if spatial_partial_measurement == neuron_num:
-        return train_dataloader, val_dataloader, simulator.W_ij, simulator.cell_type_ids, simulator.cell_type_order, simulator.cell_type_count
-    else:
-        new_W_ij = torch.zeros((spatial_partial_measurement, spatial_partial_measurement))
-        for i in range(spatial_partial_measurement):
-            for j in range(spatial_partial_measurement):
-                new_W_ij[i][j] = simulator.W_ij[idx[i]][idx[j]]
+    if data_type == "connectivity_constrained":
 
-        new_cell_type_ids = []
-        for i in range(spatial_partial_measurement):
-            new_cell_type_ids.append(simulator.cell_type_ids[idx[i]])
+        if spatial_partial_measurement == neuron_num:
+            return train_dataloader, val_dataloader, simulator.W_ij, simulator.cell_type_ids, simulator.cell_type_order, simulator.cell_type_count
+        else:
+            new_W_ij = torch.zeros((spatial_partial_measurement, spatial_partial_measurement))
+            for i in range(spatial_partial_measurement):
+                for j in range(spatial_partial_measurement):
+                    new_W_ij[i][j] = simulator.W_ij[idx[i]][idx[j]]
 
-        id2cell_type = {0:'EC', 1:'Pvalb', 2:'Sst', 3:'Vip'}
-        new_cell_type_count = {'EC':0, 'Pvalb':0, 'Sst':0, 'Vip':0}
-        for i in range(spatial_partial_measurement):
-            cell_type = id2cell_type[new_cell_type_ids[i]]
-            new_cell_type_count[cell_type] += 1
+            new_cell_type_ids = []
+            for i in range(spatial_partial_measurement):
+                new_cell_type_ids.append(simulator.cell_type_ids[idx[i]])
 
-        return train_dataloader, val_dataloader, new_W_ij, new_cell_type_ids, simulator.cell_type_order, new_cell_type_count
+            id2cell_type = {0:'EC', 1:'Pvalb', 2:'Sst', 3:'Vip'}
+            new_cell_type_count = {'EC':0, 'Pvalb':0, 'Sst':0, 'Vip':0}
+            for i in range(spatial_partial_measurement):
+                cell_type = id2cell_type[new_cell_type_ids[i]]
+                new_cell_type_count[cell_type] += 1
+
+            return train_dataloader, val_dataloader, new_W_ij, new_cell_type_ids, simulator.cell_type_order, new_cell_type_count
+        
+    elif data_type == "ring_circuit":
+
+        if spatial_partial_measurement == neuron_num:
+            return train_dataloader, val_dataloader, W
+        else:
+            raise ValueError("For ring circuit, spatial_partial_measurement is not supported.")
     
 
 
@@ -356,18 +403,18 @@ def generate_mouse_all_sessions_data(
 
 
 
-def generate_mouse_all_sessions_data_for_GLM(
+def generate_mouse_all_sessions_data_for_RNN(
     input_mouse: list,    # e.g. [SB025, SB026]
     input_sessions: list,    # e.g. [[2019-10-07, 2019-10-04], [2019-10-11, 2019-10-14, 2019-10-16]]
-    k=1,     # the number of tau(s) to consider, each tau corresponds to one linear trnasformation matrix A in GLM
+    k=1,     # the number of tau(s) to consider, each tau corresponds to one linear trnasformation matrix A in RNN
     batch_size=32,
     num_workers: int=6, 
-    normalization = 'all',    # destd for GLM with exp, all for GLM with tanh
+    normalization = 'all',    # destd for RNN with exp, all for RNN with tanh
     split_ratio=0.8,
 ):
     """
-    Mouse data generation for GLM models. It should return a list of dataloaders for each session.
-    GLM is trained on one session at a time. x_(t+1) = \sum A_k x_(t-k)
+    Mouse data generation for RNN models. It should return a list of dataloaders for each session.
+    RNN is trained on one session at a time. x_(t+1) = \sum A_k x_(t-k)
     The input is previous K time steps and the output is the current ONE time step.
     """
     
@@ -379,25 +426,31 @@ def generate_mouse_all_sessions_data_for_GLM(
 
     all_sessions_original_UniqueID = []
     all_sessions_original_cell_type = []
+
     all_sessions_acitvity_TRAIN = []
     all_sessions_acitvity_VAL = []
+
+    all_sessions_state_TRAIN = []
+    all_sessions_state_VAL = []
+
     num_neurons_per_session = []
-
     sessions_2_original_cell_type = []
-
     all_sessions_activity_flatten = []
 
     for i in range(len(input_sessions_file_path)):
         date_exp = input_sessions_file_path[i]['date_exp']
         input_setting = input_sessions_file_path[i]['input_setting']
 
-        activity, frame_times, UniqueID, neuron_ttypes = load_mouse_data_session(
+        activity, frame_states, frame_times, UniqueID, neuron_ttypes = load_mouse_data_session(
             directory, date_exp, input_setting,
         )
+        frame_states = frame_states.flatten()
 
         all_sessions_original_UniqueID.append(UniqueID)
         all_sessions_acitvity_TRAIN.append(activity[:, :int(activity.shape[1]*split_ratio)])
         all_sessions_acitvity_VAL.append(activity[:, int(activity.shape[1]*split_ratio):])
+        all_sessions_state_TRAIN.append(frame_states[:int(activity.shape[1]*split_ratio)])
+        all_sessions_state_VAL.append(frame_states[int(activity.shape[1]*split_ratio):])
         num_neurons_per_session.append(activity.shape[0])
 
         all_sessions_activity_flatten.append(activity.flatten())
@@ -446,12 +499,12 @@ def generate_mouse_all_sessions_data_for_GLM(
 
     # For TRAIN
     # all_sessions_activity_windows: a list of sessions activity windows, each session is a 3D array of shape num_windows x num_neurons x window_size
-    all_sessions_activity_windows_TRAIN, all_sessions_new_UniqueID_windows_TRAIN, all_sessions_new_cell_type_id_window_TRAIN = tools.sliding_windows(
-        all_sessions_acitvity_TRAIN, all_sessions_new_UniqueID, all_sessions_new_cell_type_id, window_size=(k+1)
+    all_sessions_activity_windows_TRAIN, all_sessions_new_UniqueID_windows_TRAIN, all_sessions_new_cell_type_id_window_TRAIN, all_sessions_state_windows_TRAIN = tools.sliding_windows(
+        all_sessions_acitvity_TRAIN, all_sessions_new_UniqueID, all_sessions_new_cell_type_id, all_sessions_state_TRAIN, window_size=(k+1)
     )
     # For VAL
-    all_sessions_activity_windows_VAL, all_sessions_new_UniqueID_windows_VAL, all_sessions_new_cell_type_id_window_VAL = tools.sliding_windows(
-        all_sessions_acitvity_VAL, all_sessions_new_UniqueID, all_sessions_new_cell_type_id, window_size=(k+1)
+    all_sessions_activity_windows_VAL, all_sessions_new_UniqueID_windows_VAL, all_sessions_new_cell_type_id_window_VAL, all_sessions_state_windows_VAL = tools.sliding_windows(
+        all_sessions_acitvity_VAL, all_sessions_new_UniqueID, all_sessions_new_cell_type_id, all_sessions_state_VAL, window_size=(k+1)
     )
 
     ##############################################

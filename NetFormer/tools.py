@@ -13,7 +13,10 @@ def linear_transform(matrix, GT):
 
     # linear regression
     slope, intercept, r_value, p_value, std_err = stats.linregress(flatten_matrix, flatten_GT)
-    # linear transform
+    # positive transformation only
+    if slope < 0:
+        slope = -slope
+        intercept = -intercept
     result = matrix * slope + intercept
     return result
 
@@ -121,6 +124,27 @@ def construct_weight_matrix_cell_type(neuron_num):
 
     return weight_matrix, cell_type_order, cell_type_ids, cell_type_count
 
+
+
+############################################################################################################
+# Ring circuit simulation
+############################################################################################################
+
+def construct_weight_matrix_ring_circuit(N):
+    # Weight parameters
+    sig_1 = 6.98
+    sig_2 = 7
+    a1 = 1
+    a2 = 1.0005
+
+    # Create weight matrix W
+    indices = np.arange(N)
+    i_indices = indices.reshape(N, 1)
+    j_indices = indices.reshape(1, N)
+    x = np.minimum(np.abs(i_indices - j_indices), N - np.abs(i_indices - j_indices))
+    W = a1 * (np.exp(-x**2 / (2 * sig_1**2)) - a2 * np.exp(-x**2 / (2 * sig_2**2)))
+
+    return W
 
 
 

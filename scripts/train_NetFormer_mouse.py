@@ -21,6 +21,7 @@ if __name__ == "__main__":
     parser.add_argument("--out_folder", help="the output folder")
 
     # Data
+
     parser.add_argument("--input_mouse")
     parser.add_argument("--input_sessions")
 
@@ -29,7 +30,8 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", help="the batch size", type=int, default=32)
 
     # Model
-    parser.add_argument("--model_random_seed", default=12)
+    
+    parser.add_argument("--model_random_seed", default=42)
     parser.add_argument("--learning_rate", help="learning rate", default=1e-4)
 
     parser.add_argument("--attention_activation", default="none")    # "softmax" or "sigmoid" or "tanh" or "none"
