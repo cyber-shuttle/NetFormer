@@ -18,7 +18,12 @@ pip install -e .
 * Simulation Data
   * Nonlinear and Nonstationary System Simulation
   * Spike-Timing-Dependent Plasticity (STDP) Simulation
+  * Task-trained RNN
   * Connectivity-Constrained Simulation
+  * NetFormer in Networks with Spurious Correlations
+    * Network with continuous activity
+    * Network with spiking activity
+    
 * Neural Data
   * [Bugeon et al. 2022, Nature](https://www.nature.com/articles/s41586-022-04915-7) (A transcriptomic axis predicts state modulation of cortical interneurons), download dataset from this [link](https://figshare.com/articles/dataset/A_transcriptomic_axis_predicts_state_modulation_of_cortical_interneurons/19448531).
 
@@ -30,12 +35,27 @@ Data generation, model fitting, and results visualization are all in `toy_system
 ### Spike-Timing-Dependent Plasticity (STDP) Simulation
 Run `STDP/run_netformer_STDP.py` for data generation and model fitting. Results visualization is in `STDP/STDP_plots.ipynb`. 
 
+### Task-trained RNN
+
 ### Connectivity-Constrained Simulation
 
 ```bash
 cd scripts
-bash train_NetFormer_sim.sh
+bash train_NetFormer_sim_connectivity_constrained.sh
 ```
+
+### NetFormer in Networks with Spurious Correlations
+
+ * Network with continuous activity
+
+ ```bash
+ cd scripts
+ bash train_NetFormer_sim_ring_circuit.sh
+ ```
+
+ * Network with spiking activity
+   
+
 ### Neural Data
 
 * Create a data folder `data` under home directory.
