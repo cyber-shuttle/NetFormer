@@ -55,6 +55,8 @@ bash train_NetFormer_sim_connectivity_constrained.sh
 
  * Network with spiking activity
    
+ Data generation is in `spurious_corr_spike_sim/data_generation.ipynb`. Run `spurious_corr_spike_sim/run_netformer_spk.py` for model fitting. Results visualization is in `spurious_corr_spike_sim/results_visualize.ipynb`. 
+   
 
 ### Neural Data
 
