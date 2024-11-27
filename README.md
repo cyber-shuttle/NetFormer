@@ -35,8 +35,6 @@ Data generation, model fitting, and results visualization are all in `toy_system
 ### Spike-Timing-Dependent Plasticity (STDP) Simulation
 Run `STDP/run_netformer_STDP.py` for data generation and model fitting. Results visualization is in `STDP/STDP_plots.ipynb`. 
 
-### Task-trained RNN
-
 ### Connectivity-Constrained Simulation
 
 ```bash
@@ -57,7 +55,6 @@ bash train_NetFormer_sim_connectivity_constrained.sh
    
  Data generation is in `spurious_corr_spike_sim/data_generation.ipynb`. Run `spurious_corr_spike_sim/run_netformer_spk.py` for model fitting. Results visualization is in `spurious_corr_spike_sim/results_visualize.ipynb`. 
    
-
 ### Neural Data
 
 * Create a data folder `data` under home directory.
@@ -67,5 +64,14 @@ bash train_NetFormer_sim_connectivity_constrained.sh
 cd scripts
 bash train_NetFormer_mouse.sh
 ```
+
+
+## Baselines
+
+### Nonstationary Baselines
+
+ * LtrRNN: Clone and install [LtrRNN package](https://github.com/arthur-pe/LtrRNN). Run `notebook/LtrRNN.ipynb` for model fitting and evaluation on neural data.
+ * AR-HMM: Clone and install [ssm package](https://github.com/lindermanlab/ssm). Run `notebook/arHMM.ipynb` for model fitting and evaluation on neural data.
+   
 
 ## Citations
