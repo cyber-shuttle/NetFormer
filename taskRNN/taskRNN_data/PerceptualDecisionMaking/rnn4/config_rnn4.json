@@ -1,0 +1,1 @@
+{"dt": 100, "hidden_size": 4, "lr": 0.005, "batch_size": 32, "seq_len": 100, "envid": "PerceptualDecisionMaking-v0", "env_kwargs": {"dt": 100}}
