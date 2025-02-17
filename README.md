@@ -54,19 +54,6 @@ Visualization of NetFormer results is in `taskRNN/taskrnn_netformer_{task}.ipynb
 cd scripts
 bash train_NetFormer_sim_connectivity_constrained.sh
 ```
-
-### NetFormer in Networks with Spurious Correlations
-
- * Network with continuous activity
-
- ```bash
- cd scripts
- bash train_NetFormer_sim_ring_circuit.sh
- ```
-
- * Network with spiking activity
-   
- Data generation is in `spurious_corr_spike_sim/data_generation.ipynb`. Run `spurious_corr_spike_sim/run_netformer_spk.py` for fitting NetFormer. Visualization of NetFormer results is in `spurious_corr_spike_sim/results_visualize.ipynb` (result files were not uploaded due to file size limit). 
    
 ### Neural Data
 
@@ -86,5 +73,30 @@ bash train_NetFormer_mouse.sh
  * LtrRNN: Clone and install [LtrRNN package](https://github.com/arthur-pe/LtrRNN). Run `notebook/nonstationary_baselines/LtrRNN.ipynb` for model fitting and evaluation on neural data.
  * AR-HMM: Clone and install [ssm package](https://github.com/lindermanlab/ssm). Run `notebook/nonstationary_baselines/arHMM.ipynb` for model fitting and evaluation on neural data.
    
+### Supplementary: Networks with Spurious Correlations
+
+ * Network with continuous activity
+
+ ```bash
+ cd scripts
+ bash train_NetFormer_sim_ring_circuit.sh
+ ```
+
+ * Network with spiking activity
+   
+ Data generation is in `spurious_corr_spike_sim/data_generation.ipynb`. Run `spurious_corr_spike_sim/run_netformer_spk_poisson.py` for fitting NetFormer. 
+ For recurrent strength r=0.0025, 0.005, 0.0075, 0.01, 0.0125, 0.015, 0.0175, 0.02, 0.0225, 0.025:
+ - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.0025 --useinp 0 --histlen 1 --LN 0 --embdim 100 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.001 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
+ - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.005 --useinp 0 --histlen 1 --LN 0 --embdim 100 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.001 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
+ - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.0075 --useinp 0 --histlen 1 --LN 0 --embdim 100 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.002 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
+ - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.01 --useinp 0 --histlen 1 --LN 0 --embdim 100 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.002 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
+ - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.0125 --useinp 0 --histlen 1 --LN 0 --embdim 100 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.002 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
+ - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.015 --useinp 0 --histlen 1 --LN 0 --embdim 100 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.002 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
+ - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.0175 --useinp 0 --histlen 1 --LN 0 --embdim 100 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.002 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
+ - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.02 --useinp 0 --histlen 1 --LN 0 --embdim 100 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.002 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
+ - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.0225 --useinp 0 --histlen 1 --LN 0 --embdim 40 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.0005 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
+ - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.025 --useinp 0 --histlen 1 --LN 0 --embdim 100 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.002 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
+
+ Visualization of NetFormer results is in `spurious_corr_spike_sim/results_visualize.ipynb` (result files were not uploaded due to file size limit). 
 
 ## Citations
