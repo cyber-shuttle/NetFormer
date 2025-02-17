@@ -28,9 +28,8 @@ if __name__ == '__main__':
     parser.add_argument('--lrstep', type=int, default=1)
     parser.add_argument('--lrgamma', type=float, default=1)
     parser.add_argument('--usegpu', type=int, default=1)
-    parser.add_argument('--datapath', type=str, default='../Fiete_data/')  # tasks: DelayComparison, GoNogo, PerceptualDecisionMaking
-    parser.add_argument('--outdir', type=str, default='../Fiete_results_poisson/')
-    parser.add_argument('--save', type=int, default=0)
+    parser.add_argument('--datapath', type=str, default='./')
+    parser.add_argument('--outdir', type=str, default='./results/')
     parser.add_argument('--seeds', type=int, nargs="+", default=[0, 1, 2])
 
     args = parser.parse_args()
@@ -127,8 +126,8 @@ if __name__ == '__main__':
     print(len(train_dataset), len(test_dataset))
 
     ##### train model and keep records #####
-    train_loss_allepochs_allseeds = {}
-    test_loss_allepochs_allseeds = {}
+    train_loss_allseeds = {}
+    test_loss_allseeds = {}
     offdiag_mask = ~np.eye(nneur, dtype=bool)
 
     for seed in args.seeds:
@@ -136,7 +135,6 @@ if __name__ == '__main__':
         torch.manual_seed(seed)
 
         train_loss_allepochs = []
-        test_loss_allepochs = []
 
         train_dataloader = DataLoader(train_dataset, batch_size=args.batchsize, shuffle=True)
         test_dataloader = DataLoader(test_dataset, batch_size=args.batchsize, shuffle=True)
@@ -155,9 +153,9 @@ if __name__ == '__main__':
         criterion = nn.PoissonNLLLoss()
         optimizer = optim.Adam(model_cat.parameters(), lr=args.lr)
 
-        test_loss_allepochs.append(evaluate(test_dataloader, model_cat, criterion, device=device, return_avg_attn=False))
-        train_loss_allepochs.append(evaluate(train_dataloader, model_cat, criterion, device=device, return_avg_attn=False))
-        print(f'epoch 0: train loss {train_loss_allepochs[-1]:.3f}    test loss {test_loss_allepochs[-1]:.3f}')
+        test_loss0 = evaluate(test_dataloader, model_cat, criterion, device=device, return_avg_attn=False)
+        train_loss0 = evaluate(train_dataloader, model_cat, criterion, device=device, return_avg_attn=False)
+        print(f'epoch 0: train loss {train_loss0:.3f}    test loss {test_loss0:.3f}')
 
         if args.lrschr:
             scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.lrstep, gamma=args.lrgamma)
@@ -166,26 +164,23 @@ if __name__ == '__main__':
             train_loss_epoch = train(train_dataloader, model_cat, criterion, optimizer, device=device, max_grad_norm=None)
             train_loss_allepochs.append(train_loss_epoch)
 
-            test_loss_epoch, avg_attn = evaluate(test_dataloader, model_cat, criterion, device=device, return_avg_attn=True, attn_shape=attn_shape)
-            test_loss_allepochs.append(test_loss_epoch)
-            # avg_attn = avg_attn.cpu()[:, :nneur]
-
-            print(f'epoch {epoch}: train loss {train_loss_allepochs[-1]:.3f}   test loss {test_loss_allepochs[-1]:.3f}')
+            if epoch == args.maxepoch:
+                test_loss, avg_attn = evaluate(test_dataloader, model_cat, criterion, device=device, return_avg_attn=True, attn_shape=attn_shape)
+                print(f'epoch {epoch}: train loss {train_loss_allepochs[-1]:.3f}   test loss {test_loss:.3f}')
 
             if args.lrschr:
                 scheduler.step()
                 # print(scheduler.get_last_lr())
 
-        if args.save:
-            avg_attn = avg_attn.cpu()[:, :nneur]
-            np.save(f'{args.outdir}{expname}/avg_test_attn_seed{seed}', avg_attn.numpy())
-            torch.save(model_cat.state_dict(), f'{args.outdir}{expname}/trained_model_seed{seed}.pth')
+        avg_attn = avg_attn.cpu()[:, :nneur]
+        np.save(f'{args.outdir}{expname}/avg_test_attn_seed{seed}', avg_attn.numpy())
+        torch.save(model_cat.state_dict(), f'{args.outdir}{expname}/trained_model_seed{seed}.pth')
 
-        train_loss_allepochs_allseeds[seed] = train_loss_allepochs
-        test_loss_allepochs_allseeds[seed] = test_loss_allepochs
+        train_loss_allseeds[seed] = train_loss_allepochs
+        test_loss_allseeds[seed] = test_loss
 
-    res = {'train_loss_allepochs_allseeds': train_loss_allepochs_allseeds,
-           'test_loss_allepochs_allseeds': test_loss_allepochs_allseeds,
+    res = {'train_loss_allseeds': train_loss_allseeds,
+           'test_loss_allseeds': test_loss_allseeds,
            }
     with open(f'{args.outdir}{expname}.pkl', 'wb') as f:
         pickle.dump(res, f)
