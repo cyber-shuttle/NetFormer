@@ -33,10 +33,20 @@ pip install -e .
 Data generation, model fitting, and results visualization are all in `toy_systems/toy_systems.ipynb`. 
 
 ### Spike-Timing-Dependent Plasticity (STDP) Simulation
-Run `STDP/run_netformer_STDP.py` for data generation and NetFormer model fitting. Visualization of NetFormer results is in `STDP/STDP_plots.ipynb` (result files were not uploaded due to file size limit).
+For data generation and NetFormer model fitting, run `STDP/run_netformer_STDP.py` with 
+
+`python run_netformer_STDP.py --totalsteps 100000 --npre 100 --rate 50 --histlen 5 --standardize 1 --embdim 101 --projdim 0 --maxepoch 20 --batchsize 64 --lr 0.005 --smoothlen 10000 --lrschr 0 --seeds 0 1 2 3 4`
+
+Visualization of NetFormer results is in `STDP/STDP_plots.ipynb` (result files were not uploaded due to file size limit).
+
 
 ### Task-driven Population Activity Simulation
-RNN models are trained on three NeuroGym tasks (example code for training RNNs is in `taskRNN/example_data_gen.ipynb`). Task-trained RNN models and activity are in `taskRNN_data/`. Run `taskRNN/run_netformer_taskrnn.py` for fitting NetFormer. Visualization of NetFormer results is in `taskRNN/taskrnn_netformer_{task}.ipynb` (result files were not uploaded due to file size limit).
+RNN models are trained on three NeuroGym tasks (example code for training RNNs is in `taskRNN/example_data_gen.ipynb`). Task-trained RNN models and activity are in `taskRNN_data/`. Run `taskRNN/run_netformer_taskrnn.py` for fitting NetFormer:
+- For PerceptualDecisionMaking task: `python run_netformer_taskrnn.py --rnndim 4 --useinp 1 --histlen 5 --LN 1 --embdim 0 --projdim 0 --ptrain 0.8 --padstart 0 --maxepoch 100 --batchsize 64 --lr 0.0025 --lrschr 0 --datapath 'taskRNN_data/PerceptualDecisionMaking/' --outdir 'taskRNN_results/PerceptualDecisionMaking_results/' --seeds 0 1 2 3 4`
+- For GoNogo task: `python run_netformer_taskrnn.py --rnndim 8 --useinp 1 --histlen 1 --LN 0 --embdim 0 --projdim 0 --ptrain 0.8 --padstart 0 --maxepoch 50 --batchsize 64 --lr 0.01 --lrschr 0 --datapath 'taskRNN_data/GoNogo/' --outdir 'taskRNN_results/GoNogo_results/' --seeds 0 1 2 3 4`
+- For DelayComparison task: `python run_netformer_taskrnn.py --rnndim 12 --useinp 1 --histlen 5 --LN 1 --embdim 0 --projdim 0 --ptrain 0.8 --padstart 0 --maxepoch 50 --batchsize 64 --lr 0.005 --lrschr 0 --datapath 'taskRNN_data/DelayComparison/' --outdir 'taskRNN_results/DelayComparison_results/' --seeds 0 1 2 3 4`
+
+Visualization of NetFormer results is in `taskRNN/taskrnn_netformer_{task}.ipynb` (result files were not uploaded due to file size limit).
 
 ### Connectivity-Constrained Simulation
 
