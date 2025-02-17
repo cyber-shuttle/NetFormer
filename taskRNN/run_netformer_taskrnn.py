@@ -15,7 +15,6 @@ if __name__ == '__main__':
     parser.add_argument('--useinp', type=int, default=1)  # if 1, include stim inputs
     parser.add_argument('--histlen', type=int, default=5)  # number of history steps
     parser.add_argument('--LN', type=int, default=1)  # if 1, use layernorm
-    parser.add_argument('--standardize', type=int, default=0)  # if 1, standardize signals using training mean & std
     parser.add_argument('--embdim', type=int, default=0)  # concat embedding dim. If 0, set to nvar
     parser.add_argument('--projdim', type=int, default=0)  # key/query proj dim. If 0, set to None
     parser.add_argument('--ptrain', type=float, default=0.8)  # fraction of trials for training
@@ -24,10 +23,10 @@ if __name__ == '__main__':
     parser.add_argument('--batchsize', type=int, default=64)  # batch size
     parser.add_argument('--lr', type=float, default=0.0025)  # learning rate
     parser.add_argument('--lrschr', type=int, default=0)  # if 1, use learning rate scheduler
-    parser.add_argument('--lrstep', type=int, default=2)
-    parser.add_argument('--lrgamma', type=float, default=0.9)
-    parser.add_argument('--datapath', type=str, default='../taskRNN_data/DelayComparison/')  # tasks: DelayComparison, GoNogo, PerceptualDecisionMaking
-    parser.add_argument('--outdir', type=str, default='../taskRNN_results/DelayComparison_results/')
+    # parser.add_argument('--lrstep', type=int, default=2)
+    # parser.add_argument('--lrgamma', type=float, default=0.9)
+    parser.add_argument('--datapath', type=str, default='./taskRNN_data/DelayComparison/')  # tasks: DelayComparison, GoNogo, PerceptualDecisionMaking
+    parser.add_argument('--outdir', type=str, default='./taskRNN_results/DelayComparison_results/')
     parser.add_argument('--seeds', type=int, nargs="+", default=[0, 1, 2, 3, 4])
 
     args = parser.parse_args()
@@ -46,7 +45,7 @@ if __name__ == '__main__':
     if args.save:
         os.mkdir(f'{args.outdir}{expname}')
 
-    def make_data(rnn_activity, rnn_inputs=None, histlen=1, padstart=False, standardize=False):
+    def make_data(rnn_activity, rnn_inputs=None, histlen=1, padstart=False):
         ntrial = rnn_activity.shape[0]
         triallen = rnn_activity.shape[1]
         nneur = rnn_activity.shape[2]
@@ -57,12 +56,6 @@ if __name__ == '__main__':
             rnn_activity_inp = np.concatenate((rnn_activity, rnn_inputs_), axis=-1)
         else:
             rnn_activity_inp = rnn_activity
-        if standardize:
-            # Compute the mean and standard deviation along the first dimension
-            mean = np.mean(rnn_activity_inp, axis=1, keepdims=True)
-            std = np.std(rnn_activity_inp, axis=1, keepdims=True)
-            # Standardize the array
-            rnn_activity_inp = (rnn_activity_inp - mean) / std
 
         nneurin = rnn_activity_inp.shape[2]
 
@@ -179,8 +172,8 @@ if __name__ == '__main__':
             train_mse_allepochs.append(train_mse0)
         print(f'epoch 0: train mse {train_mse0:.3f}    test mse {test_mse0:.3f}')
 
-        if args.lrschr:
-            scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.lrstep, gamma=args.lrgamma)
+        # if args.lrschr:
+        #     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.lrstep, gamma=args.lrgamma)
         # Training loop
         for epoch in range(1, args.maxepoch+1):
             train_loss_epoch = train(train_dataloader, model_cat, criterion, optimizer, max_grad_norm=None)
@@ -199,10 +192,8 @@ if __name__ == '__main__':
                 np.save(f'{args.outdir}{expname}/test_pred_seed{seed}', test_pred)
                 torch.save(model_cat.state_dict(), f'{args.outdir}{expname}/trained_model_seed{seed}.pth')
 
-            if args.lrschr:
-                scheduler.step()
-                # print(scheduler.get_last_lr())
-
+            # if args.lrschr:
+            #     scheduler.step()
 
         train_mse_allseeds[seed] = train_mse_allepochs
         test_mse_allseeds[seed] = test_mse
