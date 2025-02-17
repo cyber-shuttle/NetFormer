@@ -16,11 +16,11 @@ pip install -e .
 ## Datasets
 
 * Simulation Data
-  * Nonlinear and Nonstationary System Simulation
+  * Nonlinear and Nonstationary Systems Simulation
   * Spike-Timing-Dependent Plasticity (STDP) Simulation
-  * Task-trained RNN
+  * Task-driven Population Activity Simulation
   * Connectivity-Constrained Simulation
-  * NetFormer in Networks with Spurious Correlations
+  * Supplementary: Networks with Spurious Correlations
     * Network with continuous activity
     * Network with spiking activity
     
