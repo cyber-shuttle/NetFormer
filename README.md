@@ -29,11 +29,14 @@ pip install -e .
 
 ## Fit NetFormer to Data
 
-### Nonlinear and Nonstationary System Simulation
+### Nonlinear and Nonstationary Systems Simulation
 Data generation, model fitting, and results visualization are all in `toy_systems/toy_systems.ipynb`. 
 
 ### Spike-Timing-Dependent Plasticity (STDP) Simulation
-Run `STDP/run_netformer_STDP.py` for data generation and model fitting. Results visualization is in `STDP/STDP_plots.ipynb`. 
+Run `STDP/run_netformer_STDP.py` for data generation and NetFormer model fitting. Visualization of NetFormer results is in `STDP/STDP_plots.ipynb` (result files were not uploaded due to file size limit).
+
+### Task-driven Population Activity Simulation
+RNN models are trained on three NeuroGym tasks (example code for training RNNs is in `taskRNN/example_data_gen.ipynb`). Task-trained RNN models and activity are in `taskRNN_data/`. Run `taskRNN/run_netformer_taskrnn.py` for fitting NetFormer. Visualization of NetFormer results is in `taskRNN/taskrnn_netformer_{task}.ipynb` (result files were not uploaded due to file size limit).
 
 ### Connectivity-Constrained Simulation
 
@@ -53,7 +56,7 @@ bash train_NetFormer_sim_connectivity_constrained.sh
 
  * Network with spiking activity
    
- Data generation is in `spurious_corr_spike_sim/data_generation.ipynb`. Run `spurious_corr_spike_sim/run_netformer_spk.py` for model fitting. Results visualization is in `spurious_corr_spike_sim/results_visualize.ipynb`. 
+ Data generation is in `spurious_corr_spike_sim/data_generation.ipynb`. Run `spurious_corr_spike_sim/run_netformer_spk.py` for fitting NetFormer. Visualization of NetFormer results is in `spurious_corr_spike_sim/results_visualize.ipynb` (result files were not uploaded due to file size limit). 
    
 ### Neural Data
 
