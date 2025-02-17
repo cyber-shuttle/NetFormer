@@ -23,8 +23,8 @@ if __name__ == '__main__':
     parser.add_argument('--lr', type=float, default=0.005)  # learning rate
     parser.add_argument('--smoothlen', type=int, default=10000)  # learning rate
     parser.add_argument('--lrschr', type=int, default=0)  # if 1, use learning rate scheduler
-    parser.add_argument('--lrstep', type=int, default=1)
-    parser.add_argument('--lrgamma', type=float, default=0.99)
+    # parser.add_argument('--lrstep', type=int, default=1)
+    # parser.add_argument('--lrgamma', type=float, default=0.99)
     parser.add_argument('--outdir', type=str, default='./')
     parser.add_argument('--seeds', type=int, nargs="+", default=[0, 1, 2, 3, 4])
 
@@ -153,8 +153,8 @@ if __name__ == '__main__':
             train_mse_allepochs.append(train_mse0)
         print(f'epoch 0: train mse {train_mse0:.3f}    test mse {test_mse0:.3f}')
 
-        if args.lrschr:
-            scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.lrstep, gamma=args.lrgamma)
+        # if args.lrschr:
+        #     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.lrstep, gamma=args.lrgamma)
         # Training loop
         for epoch in range(1, args.maxepoch+1):
             train_loss_epoch = train(train_dataloader, model_cat, criterion, optimizer, max_grad_norm=None)
@@ -180,9 +180,8 @@ if __name__ == '__main__':
                     np.save(args.outdir + f'test_attn_seed{seed}', test_attn)
                     torch.save(model_cat.state_dict(), args.outdir + f'trained_model_seed{seed}.pth')
 
-            if args.lrschr:
-                scheduler.step()
-                # print(scheduler.get_last_lr())
+            # if args.lrschr:
+            #     scheduler.step()
 
         train_mse_allseeds[seed] = train_mse_allepochs
         test_mse_allseeds[seed] = test_mse
