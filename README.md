@@ -87,16 +87,17 @@ bash train_NetFormer_mouse.sh
  Data generation is in `spurious_corr_spike_sim/data_generation.ipynb`. Run `spurious_corr_spike_sim/run_netformer_spk_poisson.py` for fitting NetFormer. 
  
  For recurrent strength r=0.0025, 0.005, 0.0075, 0.01, 0.0125, 0.015, 0.0175, 0.02, 0.0225, 0.025:
- - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.0025 --useinp 0 --histlen 1 --LN 0 --embdim 100 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.001 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
- - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.005 --useinp 0 --histlen 1 --LN 0 --embdim 100 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.001 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
- - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.0075 --useinp 0 --histlen 1 --LN 0 --embdim 100 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.002 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
- - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.01 --useinp 0 --histlen 1 --LN 0 --embdim 100 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.002 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
- - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.0125 --useinp 0 --histlen 1 --LN 0 --embdim 100 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.002 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
- - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.015 --useinp 0 --histlen 1 --LN 0 --embdim 100 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.002 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
- - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.0175 --useinp 0 --histlen 1 --LN 0 --embdim 100 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.002 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
- - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.02 --useinp 0 --histlen 1 --LN 0 --embdim 100 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.002 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
- - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.0225 --useinp 0 --histlen 1 --LN 0 --embdim 40 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.0005 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
- - `python run_netformer_spk_poisson.py --totalsteps 100000 --skipsteps 10000 --r 0.025 --useinp 0 --histlen 1 --LN 0 --embdim 100 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lr 0.002 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
+ - `python run_netformer_spk_poisson.py --r 0.0025  --embdim 100  --lr 0.001`
+ - `python run_netformer_spk_poisson.py --r 0.005 --embdim 100 --lr 0.001`
+ - `python run_netformer_spk_poisson.py --r 0.0075 --embdim 100 --lr 0.002`
+ - `python run_netformer_spk_poisson.py --r 0.01 --embdim 100 --lr 0.002`
+ - `python run_netformer_spk_poisson.py --r 0.0125 --embdim 100 --lr 0.002`
+ - `python run_netformer_spk_poisson.py --r 0.015 --embdim 100 --lr 0.002`
+ - `python run_netformer_spk_poisson.py --r 0.0175 --embdim 100 --lr 0.002`
+ - `python run_netformer_spk_poisson.py --r 0.02 --embdim 100 --lr 0.002`
+ - `python run_netformer_spk_poisson.py --r 0.0225 --embdim 40 --lr 0.0005`
+ - `python run_netformer_spk_poisson.py --r 0.025 --embdim 100 --lr 0.002`
+ - These arguments are the same for all r: `--totalsteps 100000 --skipsteps 10000 --useinp 0 --histlen 1 --LN 0 --projdim 0 --ptrain 0.8 --maxepoch 100 --batchsize 32 --lrschr 0 --usegpu 1 --datapath './' --outdir 'results/' --seeds 0 1 2`
 
  Visualization of NetFormer results is in `spurious_corr_spike_sim/results_visualize.ipynb` (result files were not uploaded due to file size limit). 
 
