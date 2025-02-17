@@ -17,7 +17,6 @@ if __name__ == '__main__':
     parser.add_argument('--useinp', type=int, default=0)  # if 1, include external input
     parser.add_argument('--histlen', type=int, default=1)  # number of history steps
     parser.add_argument('--LN', type=int, default=0)  # if 1, use layernorm
-    parser.add_argument('--standardize', type=int, default=0)  # if 1, standardize signals using training mean & std
     parser.add_argument('--embdim', type=int, default=100)  # concat embedding dim. If 0, set to nvar
     parser.add_argument('--projdim', type=int, default=0)  # key/query proj dim. If 0, set to None
     parser.add_argument('--ptrain', type=float, default=0.8)  # fraction of trials for training
@@ -25,8 +24,8 @@ if __name__ == '__main__':
     parser.add_argument('--batchsize', type=int, default=32)  # batch size
     parser.add_argument('--lr', type=float, default=0.001)  # learning rate
     parser.add_argument('--lrschr', type=int, default=0)  # if 1, use learning rate scheduler
-    parser.add_argument('--lrstep', type=int, default=1)
-    parser.add_argument('--lrgamma', type=float, default=1)
+    # parser.add_argument('--lrstep', type=int, default=1)
+    # parser.add_argument('--lrgamma', type=float, default=1)
     parser.add_argument('--usegpu', type=int, default=1)
     parser.add_argument('--datapath', type=str, default='./')
     parser.add_argument('--outdir', type=str, default='./results/')
@@ -77,15 +76,6 @@ if __name__ == '__main__':
     print('device:', device)
     ##### generate training/test samples #####
     ntrain = int(totalsteps * args.ptrain)
-    if args.standardize:
-        act_train_mean = np.mean(activity[:ntrain], axis=0)
-        act_train_std = np.std(activity[:ntrain], axis=0)
-        act_train_std[act_train_std == 0.0] = 1.0
-        activity -= act_train_mean
-        activity /= act_train_std
-        # assert np.isfinite(activity).all()
-    # plt.plot(activity[:, 0])
-    # plt.show()
 
     if args.useinp:
         inp = np.full((activity.shape[0], 1), 0.001)
@@ -157,8 +147,8 @@ if __name__ == '__main__':
         train_loss0 = evaluate(train_dataloader, model_cat, criterion, device=device, return_avg_attn=False)
         print(f'epoch 0: train loss {train_loss0:.3f}    test loss {test_loss0:.3f}')
 
-        if args.lrschr:
-            scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.lrstep, gamma=args.lrgamma)
+        # if args.lrschr:
+        #     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.lrstep, gamma=args.lrgamma)
         # Training loop
         for epoch in range(1, args.maxepoch+1):
             train_loss_epoch = train(train_dataloader, model_cat, criterion, optimizer, device=device, max_grad_norm=None)
@@ -168,9 +158,8 @@ if __name__ == '__main__':
                 test_loss, avg_attn = evaluate(test_dataloader, model_cat, criterion, device=device, return_avg_attn=True, attn_shape=attn_shape)
                 print(f'epoch {epoch}: train loss {train_loss_allepochs[-1]:.3f}   test loss {test_loss:.3f}')
 
-            if args.lrschr:
-                scheduler.step()
-                # print(scheduler.get_last_lr())
+            # if args.lrschr:
+            #     scheduler.step()
 
         avg_attn = avg_attn.cpu()[:, :nneur]
         np.save(f'{args.outdir}{expname}/avg_test_attn_seed{seed}', avg_attn.numpy())
