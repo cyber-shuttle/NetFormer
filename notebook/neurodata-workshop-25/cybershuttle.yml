@@ -19,7 +19,11 @@ workspace:
     cluster: expanse
     group: Default
     queue: shared
-  data_collection: []
+  data_collection: 
+     - source: cybershuttle
+      identifier: neuroaihub-netformer/Bugeon
+      mount_point: /data/Bugeon
+    - source: cybershuttle
   model_collection: []
 
 additional_dependencies:
