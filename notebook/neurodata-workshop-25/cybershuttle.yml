@@ -1,0 +1,35 @@
+project:
+  name: NetFormer : Transformer model for neural connectivity
+  version: 0.1
+  description: 
+  tags:
+    - Neuroscience
+    - Transformer
+  homepage: 
+
+workspace:
+  location: /workspace
+  resources:
+    min_cpu: 4
+    min_gpu: 0
+    gpu_mem: 1024
+    gpu_class: ["H100", "A100", "Generic"]
+    min_mem: 4096
+    walltime: 60
+    cluster: expanse
+    group: Default
+    queue: shared
+  data_collection: []
+  model_collection: []
+
+additional_dependencies:
+  conda:
+    - python=3.10
+    - pip
+    - numpy
+    - torch
+    - einops
+    - matplotlib
+    - scipy
+    - sklearn
+  pip: []
