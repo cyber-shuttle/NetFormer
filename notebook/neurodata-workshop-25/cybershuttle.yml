@@ -1,5 +1,5 @@
 project:
-  name: NetFormer : Transformer model for neural connectivity
+  name: NetFormer - Transformer model for neural connectivity
   version: 0.1
   description: 
   tags:
@@ -15,15 +15,10 @@ workspace:
     gpu_mem: 1024
     gpu_class: ["H100", "A100", "Generic"]
     min_mem: 4096
-    walltime: 60
-    cluster: expanse
-    group: Default
-    queue: shared
   data_collection: 
-     - source: cybershuttle
-      identifier: neuroaihub-netformer/Bugeon
-      mount_point: /data/Bugeon
     - source: cybershuttle
+      identifier: neuroaihub-netformer
+      mount_point: /cybershuttle_data/neuroaihub-netformer
   model_collection: []
 
 additional_dependencies:
