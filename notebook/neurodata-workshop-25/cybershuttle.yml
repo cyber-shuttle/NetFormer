@@ -1,5 +1,5 @@
 project:
-  name: NetFormer - Transformer model for neural connectivity
+  name: "NetFormer - Transformer model for neural connectivity"
   version: 0.1
   description: 
   tags:
