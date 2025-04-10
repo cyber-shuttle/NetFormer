@@ -26,9 +26,10 @@ additional_dependencies:
     - python=3.10
     - pip
     - numpy
-    - torch
+    - pytorch::pytorch
     - einops
     - matplotlib
     - scipy
-    - sklearn
+    - scikit-learn
+    - pytorch-lightning
   pip: []
