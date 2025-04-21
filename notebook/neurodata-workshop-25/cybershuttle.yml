@@ -1,25 +1,26 @@
 project:
-  name: "NetFormer - Transformer model for neural connectivity"
-  version: 0.1
-  description: 
+  name: "Bridge the Gap between the Structure and Function in the Brain"
+  description: "Run the NetFormer model for neural connectivity"
+  homepage: https://github.com/NeuroAIHub/NetFormer
+  authors:
+    - Lu Mi
   tags:
-    - Neuroscience
-    - Transformer
-  homepage: 
+    - neurodata25
+    - neuroaihub
+    - netformer
 
 workspace:
   location: /workspace
   resources:
     min_cpu: 4
     min_gpu: 0
-    gpu_mem: 1024
-    gpu_class: ["H100", "A100", "Generic"]
     min_mem: 4096
+    gpu_mem: 1024
+  model_collection: []
   data_collection: 
     - source: cybershuttle
       identifier: neuroaihub-netformer
       mount_point: /cybershuttle_data/neuroaihub-netformer
-  model_collection: []
 
 additional_dependencies:
   conda:
