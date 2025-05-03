@@ -10,7 +10,6 @@ project:
     - netformer
 
 workspace:
-  location: /workspace
   resources:
     min_cpu: 4
     min_gpu: 0
@@ -23,6 +22,7 @@ workspace:
       mount_point: /cybershuttle_data/neuroaihub-netformer
 
 additional_dependencies:
+  modules: []
   conda:
     - python=3.10
     - pip
